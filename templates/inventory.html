@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - GroceryManager</title>
+    <link rel="stylesheet" href="/static/css/custom.css?v=3">
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">GroceryManager</a>
+        <div class="nav-links">
+            <a href="/dashboard" class="nav-link">Dashboard</a>
+            <a href="/manage-products" class="nav-link">Products</a>
+            <a href="/inventory" class="nav-link active">Inventory</a>
+            <a href="/orders" class="nav-link">New Order</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Update Stock Form -->
+        <div class="card"
+            style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1)); border: 1px solid rgba(255,255,255,0.2);">
+            <div class="card-header">
+                <h2 class="card-title"
+                    style="background: linear-gradient(to right, #6366f1, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.5rem;">
+                    Update Stock
+                </h2>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 1.5rem; align-items: end;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Product</label>
+                    <select id="stockProductSelect" class="form-control" required>
+                        <option value="">-- Select Product --</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Quantity</label>
+                    <input type="number" step="0.01" id="stockQuantity" class="form-control" required placeholder="0.00">
+                </div>
+                <button class="btn btn-primary" style="height: 42px;" onclick="updateStock()">Update Stock</button>
+            </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Remaining Stock</h2>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Unit</th>
+                            <th>Remaining Stock</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table-body">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/custom.js?v=3"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInventory();
+            loadProductsDropdown();
+        });
+
+        function loadInventory() {
+            fetch('/getInventory')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('inventory-table-body');
+                    tbody.innerHTML = '';
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-secondary);">No products found.</td></tr>';
+                        return;
+                    }
+                    data.forEach(item => {
+                        const qty = item.quantity || 0;
+                        let statusColor = '#10b981';
+                        let statusText = 'In Stock';
+                        if (qty <= 0) {
+                            statusColor = '#ef4444';
+                            statusText = 'Out of Stock';
+                        } else if (qty <= 10) {
+                            statusColor = '#f59e0b';
+                            statusText = 'Low Stock';
+                        }
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td>${item.uom_name}</td>
+                                <td>${qty}</td>
+                                <td><span style="color: ${statusColor}; font-weight: 600;">${statusText}</span></td>
+                            </tr>`;
+                    });
+                })
+                .catch(err => console.error('Error loading inventory:', err));
+        }
+
+        function loadProductsDropdown() {
+            fetch('/getProducts')
+                .then(res => res.json())
+                .then(data => {
+                    const select = document.getElementById('stockProductSelect');
+                    data.forEach(p => {
+                        select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+                    });
+                });
+        }
+
+        function updateStock() {
+            const productName = document.getElementById('stockProductSelect').value;
+            const quantity = document.getElementById('stockQuantity').value;
+
+            if (!productName || !quantity) {
+                alert('Please select a product and enter quantity!');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('data', JSON.stringify({ product_name: productName, quantity: parseFloat(quantity) }));
+
+            fetch('/updateStock', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Stock updated successfully!');
+                        loadInventory();
+                        document.getElementById('stockQuantity').value = '';
+                        document.getElementById('stockProductSelect').value = '';
+                    }
+                })
+                .catch(err => console.error('Error updating stock:', err));
+        }
+    </script>
+</body>
+
+</html>

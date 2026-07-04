@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order - GroceryManager</title>
+    <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">GroceryManager</a>
+        <div class="nav-links">
+            <a href="/dashboard" class="nav-link">Dashboard</a>
+            <a href="/manage-products" class="nav-link">Products</a>
+            <a href="/orders" class="nav-link active">New Order</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Create New Order</h2>
+            </div>
+
+            <div id="orderAlert" class="alert"></div>
+
+            <form id="orderForm">
+                <div style="margin-bottom: 2rem; max-width: 400px;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Customer
+                        Name</label>
+                    <input type="text" id="customerName" class="form-control">
+                </div>
+
+                <div
+                    style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--surface-border); display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 1rem; color: var(--text-secondary); font-weight: 600;">
+                    <div>Product</div>
+                    <div>Price</div>
+                    <div>Quantity</div>
+                    <div>Total</div>
+                    <div></div>
+                </div>
+
+                <div id="orderItems">
+                    <!-- Dynamic Items -->
+                </div>
+
+                <button type="button" class="btn btn-secondary" onclick="addOrderItem()" style="margin-top: 1rem;">+ Add
+                    Item</button>
+
+                <div
+                    style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--surface-border); display: flex; justify-content: flex-end; align-items: center; gap: 2rem;">
+                    <div style="text-align: right;">
+                        <div style="color: var(--text-secondary); margin-bottom: 0.25rem;">Grand Total</div>
+                        <div id="grandTotalContainer" style="font-size: 1.5rem; font-weight: 700; color: var(--secondary);">₹<span id="grandTotal">0.00</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="submitOrder()" class="btn btn-primary"
+                        style="padding: 1rem 2rem; font-size: 1.1rem;">Place Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/custom.js"></script>
+    <script>
+        let products = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            products = await fetchProducts();
+            addOrderItem(); // Add first row
+        });
+    </script>
+</body>
+
+</html>
